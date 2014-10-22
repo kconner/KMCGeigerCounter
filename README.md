@@ -14,8 +14,6 @@ A Geiger counter detects invisible radiation particles and alerts you to what yo
 
 Or copy KMCGeigerCounter.h, KMCGeigerCounter.m, and KMCGeigerCounterTick.aiff into your project.
 
-You should remove KMCGeigerCounter before shipping to the App Store.
-
 ## Usage
 
 In your `UIApplicationDelegate`, switch the tool on when your app is active:
@@ -30,6 +28,10 @@ In your `UIApplicationDelegate`, switch the tool on when your app is active:
         [KMCGeigerCounter sharedGeigerCounter].running = YES;
     }
 
-Then, build and run your app. Remember to turn off Silent mode, or you won't hear anything. Navigate through your app and listen for clicks.
+Then, build and run your app. Navigate through your app and listen for clicks.
 
-When you're done, take KMCGeigerCounter out of your project. Don't ship it to the App Store!
+## Dumb things you probably thought of, but seriously
+
+Remember to turn off Silent mode, or you won't hear anything. 
+
+You should remove KMCGeigerCounter before shipping to the App Store.
