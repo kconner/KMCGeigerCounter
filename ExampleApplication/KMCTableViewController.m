@@ -59,6 +59,8 @@ static NSString * const kCellIdentifier = @"KMCTableViewCell";
 {
     [super viewDidLoad];
 
+    self.tableView.backgroundColor = [UIColor whiteColor];
+
     switch (self.cellType) {
         case KMCTableViewCellTypeSimple:
             [self.tableView registerNib:[UINib nibWithNibName:@"KMCSimpleTableViewCell" bundle:nil] forCellReuseIdentifier:kCellIdentifier];

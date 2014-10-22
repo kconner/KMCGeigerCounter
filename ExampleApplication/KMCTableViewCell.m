@@ -39,13 +39,27 @@
     if (self.backgroundImageView != nil) {
         self.senderPhotoImageView.layer.cornerRadius = 8.0;
 
-        CAShapeLayer *shapeLayer = [CAShapeLayer layer];
-        shapeLayer.path = [UIBezierPath bezierPathWithRoundedRect:self.senderPhotoImageView.bounds cornerRadius:8.0].CGPath;
-        shapeLayer.strokeColor = [UIColor whiteColor].CGColor;
-        shapeLayer.fillColor = [UIColor colorWithRed:1.0 green:0.0 blue:0.0 alpha:0.1].CGColor;
-        shapeLayer.lineWidth = 2.0;
-        shapeLayer.frame = self.senderPhotoImageView.bounds;
-        [self.senderPhotoImageView.layer addSublayer:shapeLayer];
+        CAShapeLayer *photoOutlineLayer = [CAShapeLayer layer];
+        photoOutlineLayer.path = [UIBezierPath bezierPathWithRoundedRect:self.senderPhotoImageView.bounds cornerRadius:8.0].CGPath;
+        photoOutlineLayer.strokeColor = [UIColor whiteColor].CGColor;
+        photoOutlineLayer.fillColor = [UIColor colorWithRed:1.0 green:0.0 blue:0.0 alpha:0.1].CGColor;
+        photoOutlineLayer.lineWidth = 2.0;
+        photoOutlineLayer.frame = self.senderPhotoImageView.bounds;
+        [self.senderPhotoImageView.layer addSublayer:photoOutlineLayer];
+
+        CAShapeLayer *backgroundOutlineLayer = [CAShapeLayer layer];
+        CGRect rect = UIEdgeInsetsInsetRect(self.backgroundImageView.bounds, UIEdgeInsetsMake(8.0, 4.0, 2.0, 4.0));
+        backgroundOutlineLayer.path = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:12.0].CGPath;
+        backgroundOutlineLayer.strokeColor = [UIColor colorWithWhite:1.0 alpha:0.4].CGColor;
+        backgroundOutlineLayer.fillColor = [UIColor colorWithRed:0.0 green:0.0 blue:1.0 alpha:0.1].CGColor;
+        backgroundOutlineLayer.lineWidth = 2.0;
+        backgroundOutlineLayer.frame = self.backgroundImageView.bounds;
+        [self.backgroundImageView.layer addSublayer:backgroundOutlineLayer];
+    }
+
+    if (self.toolbar) {
+        self.toolbar.layer.cornerRadius = 4.0;
+        self.toolbar.clipsToBounds = YES;
     }
 }
 
