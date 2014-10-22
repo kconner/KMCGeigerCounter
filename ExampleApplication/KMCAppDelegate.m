@@ -12,7 +12,8 @@
 
 @implementation KMCAppDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
     KMCTableViewController *complexViewController = [KMCTableViewController new];
     complexViewController.title = @"Complex view";
     complexViewController.cellType = KMCTableViewCellTypeComplex;
@@ -34,11 +35,13 @@
     return YES;
 }
 
-- (void)applicationWillResignActive:(UIApplication *)application {
+- (void)applicationWillResignActive:(UIApplication *)application
+{
     [KMCGeigerCounter sharedGeigerCounter].running = NO;
 }
 
-- (void)applicationDidBecomeActive:(UIApplication *)application {
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
     [KMCGeigerCounter sharedGeigerCounter].running = YES;
 }
 

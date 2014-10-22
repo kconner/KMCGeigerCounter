@@ -1,0 +1,35 @@
+# KMCGeigerCounter
+
+KMCGeigerCounter is a performance testing tool that clicks like a Geiger counter when your animation drops a frame.
+
+A Geiger counter detects invisible radiation particles and alerts you to what you can't see. Dropped frames aren't invisible, but it can be hard to tell the difference between 55 and 60 fps. KMCGeigerCounter makes those five dropped frames obvious.
+
+- If you're not consistently animating smoothly, you'll hear a rough, staticky noise.
+- If your app runs at a smooth 60 fps, you'll hear the occasional drops to 59 and 58.
+- You can even hear dropped frames from CPU spikes, like when custom table view cells enter the screen and require layout.
+
+## Installation
+
+`pod 'KMCGeigerCounter'`
+
+Or copy KMCGeigerCounter.h, KMCGeigerCounter.m, and KMCGeigerCounterTick.aiff into your project.
+
+You should remove KMCGeigerCounter before shipping to the App Store.
+
+## Usage
+
+In your `UIApplicationDelegate`, switch the geiger counter on when your app is active:
+
+    - (void)applicationWillResignActive:(UIApplication *)application
+    {
+        [KMCGeigerCounter sharedGeigerCounter].running = NO;
+    }
+
+    - (void)applicationDidBecomeActive:(UIApplication *)application
+    {
+        [KMCGeigerCounter sharedGeigerCounter].running = YES;
+    }
+
+Then, build and run your app. Remember to turn off Silent mode, or you won't hear anything. Navigate through your app and listen for clicks.
+
+When you're done, take KMCGeigerCounter out of your project. Don't ship it to the App Store!

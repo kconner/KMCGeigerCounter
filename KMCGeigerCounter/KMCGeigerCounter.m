@@ -1,6 +1,6 @@
 //
 //  KMCGeigerCounter.m
-//  FramerateDemo
+//  KMCGeigerCounter
 //
 //  Created by Kevin Conner on 10/21/14.
 //  Copyright (c) 2014 Two Toasters. All rights reserved.
