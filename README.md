@@ -18,7 +18,7 @@ You should remove KMCGeigerCounter before shipping to the App Store.
 
 ## Usage
 
-In your `UIApplicationDelegate`, switch the geiger counter on when your app is active:
+In your `UIApplicationDelegate`, switch the tool on when your app is active:
 
     - (void)applicationWillResignActive:(UIApplication *)application
     {
