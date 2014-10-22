@@ -65,6 +65,7 @@ static NSString * const kCellIdentifier = @"KMCTableViewCell";
             break;
         case KMCTableViewCellTypeComplex:
             [self.tableView registerNib:[UINib nibWithNibName:@"KMCComplexTableViewCell" bundle:nil] forCellReuseIdentifier:kCellIdentifier];
+            self.tableView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
             break;
     }
 }

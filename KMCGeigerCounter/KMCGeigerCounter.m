@@ -22,73 +22,56 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / 60.0;
 @interface KMCGeigerCounter ()
 
 @property (nonatomic, strong) SKView *view;
-@property (nonatomic, strong) KMCGeigerCounterScene *scene;
 
-//@property (nonatomic, strong) CADisplayLink *displayLink;
+@property (nonatomic, strong) CADisplayLink *displayLink;
 @property (nonatomic, assign) SystemSoundID tickSoundID;
 
 @property (nonatomic, strong) NSDate *startTime;
 @property (nonatomic, assign) NSTimeInterval expectedFrameTimeRangeEnd;
-
-- (void)processFrameWithTime:(NSTimeInterval)updateTime;
-
-@end
-
-@implementation KMCGeigerCounterScene
-
-- (void)update:(NSTimeInterval)currentTime
-{
-    [self.geigerCounter processFrameWithTime:currentTime];
-}
+@property (nonatomic, strong) NSDate *lastFrameTime;
 
 @end
 
 #pragma mark -
 
+@implementation KMCGeigerCounterScene
+
+- (void)update:(NSTimeInterval)currentTime
+{
+    self.geigerCounter.lastFrameTime = [NSDate date];
+}
+
+@end
+
 @implementation KMCGeigerCounter
 
 #pragma mark - Helpers
 
-- (void)playTicks:(NSInteger)tickCount
-{
-    NSTimeInterval intervalBetweenTicks = kNormalFrameDuration / (tickCount - 1);
-
-    // Play the first tick now.
-    if (0 < tickCount) {
-        AudioServicesPlaySystemSound(self.tickSoundID);
-    }
-
-    // Spread the rest of the ticks out over the duration of one frame.
-    for (NSInteger tick = 1; tick < tickCount; tick++) {
-        NSTimeInterval delay = intervalBetweenTicks * tick;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            AudioServicesPlaySystemSound(self.tickSoundID);
-        });
-    }
-}
-
-- (void)processFrameWithTime:(NSTimeInterval)updateTime
-//- (void)displayLinkWillDraw:(CADisplayLink *)displayLink
+- (void)displayLinkWillDraw:(CADisplayLink *)displayLink
 {
     if (!self.startTime) {
-        self.startTime = [NSDate dateWithTimeIntervalSinceNow:-updateTime];
-        self.expectedFrameTimeRangeEnd = updateTime + kNormalFrameDuration;
+        self.startTime = [NSDate date];
+        self.expectedFrameTimeRangeEnd = kNormalFrameDuration;
     }
 
-    NSTimeInterval actualFrameTime = [[NSDate date] timeIntervalSinceDate:self.startTime];
+    if (self.lastFrameTime) {
+        NSTimeInterval actualFrameTime = [self.lastFrameTime timeIntervalSinceDate:self.startTime];
+        
+        NSInteger droppedFrameCount = 0;
+        while (self.expectedFrameTimeRangeEnd < actualFrameTime) {
+            // The actual frame time was after the expected time. We dropped a frame.
+            droppedFrameCount++;
+            
+            self.expectedFrameTimeRangeEnd += kNormalFrameDuration;
+        }
 
-    NSInteger tickCount = 0;
-    while (self.expectedFrameTimeRangeEnd < actualFrameTime) {
-        // The actual frame time was after the expected time. We dropped a frame. Play a tick.
-        tickCount++;
-
-        self.expectedFrameTimeRangeEnd += kNormalFrameDuration;
+        if (0 < droppedFrameCount) {
+            AudioServicesPlaySystemSound(self.tickSoundID);
+        }
     }
-    [self playTicks:tickCount];
-
-    NSLog(@"%f\t%ld", updateTime, (long) tickCount);
 
     self.expectedFrameTimeRangeEnd += kNormalFrameDuration;
+    self.lastFrameTime = nil;
 }
 
 - (void)start
@@ -98,13 +81,13 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / 60.0;
     AudioServicesCreateSystemSoundID((__bridge CFURLRef) tickSoundURL, &tickSoundID);
     self.tickSoundID = tickSoundID;
 
-//    self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(displayLinkWillDraw:)];
-//    [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+    self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(displayLinkWillDraw:)];
+    [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
 
-    self.scene = [KMCGeigerCounterScene new];
-    self.scene.geigerCounter = self;
+    KMCGeigerCounterScene *scene = [KMCGeigerCounterScene new];
+    scene.geigerCounter = self;
     self.view = [[SKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 1.0, 1.0)];
-    [self.view presentScene:self.scene];
+    [self.view presentScene:scene];
 
     [[UIApplication sharedApplication].keyWindow addSubview:self.view];
 }
@@ -113,11 +96,12 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / 60.0;
 {
     [self.view removeFromSuperview];
     self.view = nil;
-    self.scene = nil;
 
-//    [self.displayLink invalidate];
-//    self.displayLink = nil;
+    [self.displayLink invalidate];
+    self.displayLink = nil;
+
     self.startTime = nil;
+    self.lastFrameTime = nil;
 
     AudioServicesDisposeSystemSoundID(self.tickSoundID);
     self.tickSoundID = 0;
