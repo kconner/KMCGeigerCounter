@@ -3,7 +3,7 @@
 //  KMCGeigerCounter
 //
 //  Created by Kevin Conner on 10/21/14.
-//  Copyright (c) 2014 Two Toasters. All rights reserved.
+//  Copyright (c) 2014 Kevin Conner. All rights reserved.
 //
 
 #import "KMCGeigerCounter.h"

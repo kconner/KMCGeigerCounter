@@ -9,5 +9,5 @@ Pod::Spec.new do |s|
   s.platform         = :ios, '7.0'
   s.source           = { :git => "https://github.com/kconner/KMCGeigerCounter.git", :tag => s.version.to_s }
   s.requires_arc     = true
-  s.source_files     = "KMCGeigerCouner/*.{h,m,aiff}"
+  s.source_files     = "KMCGeigerCounter/*.{h,m,aiff}"
 end
