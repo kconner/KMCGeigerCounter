@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name             = "KMCGeigerCounter"
-  s.version          = "0.1"
-  s.summary          = "A performance testing tool that clicks like a Geiger counter when your animation drops a frame"
+  s.version          = "0.1.1"
+  s.summary          = "A performance testing tool that clicks when animation drops frames"
   s.homepage         = "https://github.com/kconner/KMCGeigerCounter"
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { "Kevin Conner" => "connerk@gmail.com" }
@@ -9,5 +9,6 @@ Pod::Spec.new do |s|
   s.platform         = :ios, '7.0'
   s.source           = { :git => "https://github.com/kconner/KMCGeigerCounter.git", :tag => s.version.to_s }
   s.requires_arc     = true
-  s.source_files     = "KMCGeigerCounter/*.{h,m,aiff}"
+  s.source_files     = "KMCGeigerCounter/*.{h,m}"
+  s.resources        = "KMCGeigerCounter/*.aiff"
 end
