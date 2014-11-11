@@ -11,35 +11,19 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <SpriteKit/SpriteKit.h>
 
-static NSTimeInterval const kNormalFrameDuration = 1.0 / 60.0;
+static NSInteger const kHardwareFramesPerSecond = 60;
+static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecond;
 
-@interface KMCGeigerCounterScene : SKScene
-
-@property (nonatomic, weak) KMCGeigerCounter *geigerCounter;
-
-@end
-
-@interface KMCGeigerCounter ()
+@interface KMCGeigerCounter () {
+    CFTimeInterval _lastSecondOfFrameTimes[kHardwareFramesPerSecond];
+}
 
 @property (nonatomic, strong) SKView *view;
 
 @property (nonatomic, strong) CADisplayLink *displayLink;
 @property (nonatomic, assign) SystemSoundID tickSoundID;
 
-@property (nonatomic, strong) NSDate *startTime;
-@property (nonatomic, assign) NSTimeInterval expectedFrameTimeRangeEnd;
-@property (nonatomic, strong) NSDate *lastFrameTime;
-
-@end
-
-#pragma mark -
-
-@implementation KMCGeigerCounterScene
-
-- (void)update:(NSTimeInterval)currentTime
-{
-    self.geigerCounter.lastFrameTime = [NSDate date];
-}
+@property (nonatomic, assign) NSInteger frameNumber;
 
 @end
 
@@ -47,31 +31,38 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / 60.0;
 
 #pragma mark - Helpers
 
+- (CFTimeInterval)lastFrameTime
+{
+    return _lastSecondOfFrameTimes[self.frameNumber % kHardwareFramesPerSecond];
+}
+
+- (void)recordFrameTime:(CFTimeInterval)frameTime
+{
+    ++self.frameNumber;
+    _lastSecondOfFrameTimes[self.frameNumber % kHardwareFramesPerSecond] = frameTime;
+}
+
+- (void)clearLastSecondOfFrameTimes
+{
+    CFTimeInterval initialFrameTime = CACurrentMediaTime();
+    for (NSInteger i = 0; i < kHardwareFramesPerSecond; ++i) {
+        _lastSecondOfFrameTimes[i] = initialFrameTime;
+    }
+    self.frameNumber = 0;
+}
+
 - (void)displayLinkWillDraw:(CADisplayLink *)displayLink
 {
-    if (!self.startTime) {
-        self.startTime = [NSDate date];
-        self.expectedFrameTimeRangeEnd = kNormalFrameDuration;
+    CFTimeInterval currentFrameTime = displayLink.timestamp;
+    CFTimeInterval frameDuration = currentFrameTime - [self lastFrameTime];
+
+    // Frames should be even multiples of kNormalFrameDuration.
+    // If a frame takes two frame durations, we dropped at least one, so click.
+    if (1.5 < frameDuration / kNormalFrameDuration) {
+        AudioServicesPlaySystemSound(self.tickSoundID);
     }
 
-    if (self.lastFrameTime) {
-        NSTimeInterval actualFrameTime = [self.lastFrameTime timeIntervalSinceDate:self.startTime];
-        
-        NSInteger droppedFrameCount = 0;
-        while (self.expectedFrameTimeRangeEnd < actualFrameTime) {
-            // The actual frame time was after the expected time. We dropped a frame.
-            droppedFrameCount++;
-            
-            self.expectedFrameTimeRangeEnd += kNormalFrameDuration;
-        }
-
-        if (0 < droppedFrameCount) {
-            AudioServicesPlaySystemSound(self.tickSoundID);
-        }
-    }
-
-    self.expectedFrameTimeRangeEnd += kNormalFrameDuration;
-    self.lastFrameTime = nil;
+    [self recordFrameTime:currentFrameTime];
 }
 
 - (void)start
@@ -83,9 +74,14 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / 60.0;
 
     self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(displayLinkWillDraw:)];
     [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+    [self clearLastSecondOfFrameTimes];
 
-    KMCGeigerCounterScene *scene = [KMCGeigerCounterScene new];
-    scene.geigerCounter = self;
+    // Low framerates can be caused by CPU activity on the main thread or by long compositing time in (I suppose)
+    // the graphics driver. If compositing time is the problem, and it doesn't require on any main thread activity
+    // between frames, then the framerate can drop without CADisplayLink detecting it.
+    // Therefore, put an empty 1pt x 1pt SKView in the window. It shouldn't interfere with the framerate, but
+    // should cause the CADisplayLink callbacks to match the timing of drawing.
+    SKScene *scene = [SKScene new];
     self.view = [[SKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 1.0, 1.0)];
     [self.view presentScene:scene];
 
@@ -99,9 +95,6 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / 60.0;
 
     [self.displayLink invalidate];
     self.displayLink = nil;
-
-    self.startTime = nil;
-    self.lastFrameTime = nil;
 
     AudioServicesDisposeSystemSoundID(self.tickSoundID);
     self.tickSoundID = 0;
@@ -124,14 +117,35 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / 60.0;
     if (_running != running) {
         if (running) {
             [self start];
-        }
-
-        if (!running) {
+        } else {
             [self stop];
         }
 
         _running = running;
     }
+}
+
+- (NSInteger)droppedFrameCountInLastSecond
+{
+    NSInteger droppedFrameCount = 0;
+
+    CFTimeInterval lastFrameTime = CACurrentMediaTime() - kNormalFrameDuration;
+    for (NSInteger i = 0; i < kHardwareFramesPerSecond; ++i) {
+        if (1.0 <= lastFrameTime - _lastSecondOfFrameTimes[i]) {
+            ++droppedFrameCount;
+        }
+    }
+
+    return droppedFrameCount;
+}
+
+- (NSInteger)drawnFrameCountInLastSecond
+{
+    if (!self.running || self.frameNumber < kHardwareFramesPerSecond) {
+        return -1;
+    }
+
+    return kHardwareFramesPerSecond - self.droppedFrameCountInLastSecond;
 }
 
 @end

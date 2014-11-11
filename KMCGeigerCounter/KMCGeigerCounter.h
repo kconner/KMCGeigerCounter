@@ -11,6 +11,8 @@
 @interface KMCGeigerCounter : NSObject
 
 @property (nonatomic, assign, getter = isRunning) BOOL running;
+@property (nonatomic, readonly) NSInteger droppedFrameCountInLastSecond;
+@property (nonatomic, readonly) NSInteger drawnFrameCountInLastSecond; // -1 until one second of frames have been collected
 
 + (instancetype)sharedGeigerCounter;
 
