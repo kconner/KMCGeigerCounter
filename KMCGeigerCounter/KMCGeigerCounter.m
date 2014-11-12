@@ -20,7 +20,13 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 
 @property (nonatomic, readwrite, getter = isRunning) BOOL running;
 
-@property (nonatomic, strong) SKView *view;
+@property (nonatomic, strong) UIWindow *window;
+@property (nonatomic, strong) UILabel *meterLabel;
+@property (nonatomic, strong) UIColor *meterPerfectColor;
+@property (nonatomic, strong) UIColor *meterGoodColor;
+@property (nonatomic, strong) UIColor *meterBadColor;
+
+@property (nonatomic, strong) SKView *sceneView;
 
 @property (nonatomic, strong) CADisplayLink *displayLink;
 @property (nonatomic, assign) SystemSoundID tickSoundID;
@@ -32,6 +38,14 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 @implementation KMCGeigerCounter
 
 #pragma mark - Helpers
+
++ (UIColor *)colorWithHex:(uint32_t)hex alpha:(CGFloat)alpha
+{
+    CGFloat red   = (CGFloat) ((hex & 0xff0000) >> 16) / 255.0f;
+    CGFloat green = (CGFloat) ((hex & 0x00ff00) >> 8)  / 255.0f;
+    CGFloat blue  = (CGFloat)  (hex & 0x0000ff)        / 255.0f;
+    return [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
+}
 
 - (CFTimeInterval)lastFrameTime
 {
@@ -53,6 +67,37 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     self.frameNumber = 0;
 }
 
+- (void)updateMeterLabel
+{
+    NSInteger droppedFrameCount = self.droppedFrameCountInLastSecond;
+    NSInteger drawnFrameCount = self.drawnFrameCountInLastSecond;
+
+    NSString *droppedString;
+    NSString *drawnString;
+
+    if (droppedFrameCount <= 0) {
+        self.meterLabel.backgroundColor = self.meterPerfectColor;
+
+        droppedString = @"--";
+    } else {
+        if (droppedFrameCount <= 2) {
+            self.meterLabel.backgroundColor = self.meterGoodColor;
+        } else {
+            self.meterLabel.backgroundColor = self.meterBadColor;
+        }
+
+        droppedString = [NSString stringWithFormat:@"%ld", (long) droppedFrameCount];
+    }
+
+    if (drawnFrameCount == -1) {
+        drawnString = @"--";
+    } else {
+        drawnString = [NSString stringWithFormat:@"%ld", (long) drawnFrameCount];
+    }
+
+    self.meterLabel.text = [NSString stringWithFormat:@"%@   %@", droppedString, drawnString];
+}
+
 - (void)displayLinkWillDraw:(CADisplayLink *)displayLink
 {
     CFTimeInterval currentFrameTime = displayLink.timestamp;
@@ -65,6 +110,8 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     }
 
     [self recordFrameTime:currentFrameTime];
+
+    [self updateMeterLabel];
 }
 
 #pragma mark -
@@ -86,16 +133,16 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     // Therefore, put an empty 1pt x 1pt SKView in the window. It shouldn't interfere with the framerate, but
     // should cause the CADisplayLink callbacks to match the timing of drawing.
     SKScene *scene = [SKScene new];
-    self.view = [[SKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 1.0, 1.0)];
-    [self.view presentScene:scene];
+    self.sceneView = [[SKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 1.0, 1.0)];
+    [self.sceneView presentScene:scene];
 
-    [[UIApplication sharedApplication].keyWindow addSubview:self.view];
+    [[UIApplication sharedApplication].keyWindow addSubview:self.sceneView];
 }
 
 - (void)stop
 {
-    [self.view removeFromSuperview];
-    self.view = nil;
+    [self.sceneView removeFromSuperview];
+    self.sceneView = nil;
 
     [self.displayLink invalidate];
     self.displayLink = nil;
@@ -133,6 +180,20 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 
 - (void)enable
 {
+    self.window = [[UIWindow alloc] initWithFrame:[UIApplication sharedApplication].statusBarFrame];
+    self.window.windowLevel = self.windowLevel;
+    self.window.userInteractionEnabled = NO;
+
+    CGFloat const kMeterWidth = 65.0;
+    self.meterLabel = [[UILabel alloc] initWithFrame:CGRectMake((CGRectGetWidth(self.window.bounds) - kMeterWidth) / 2.0, 0.0,
+                                                                kMeterWidth, CGRectGetHeight(self.window.bounds))];
+    self.meterLabel.font = [UIFont boldSystemFontOfSize:12.0];
+    self.meterLabel.backgroundColor = [UIColor grayColor];
+    self.meterLabel.textColor = [UIColor whiteColor];
+    self.meterLabel.textAlignment = NSTextAlignmentCenter;
+    [self.window addSubview:self.meterLabel];
+    self.window.hidden = NO;
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillResignActive) name:UIApplicationWillResignActiveNotification object:nil];
     
@@ -146,12 +207,34 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     self.running = NO;
+
+    self.meterLabel = nil;
+    self.window = nil;
 }
 
 #pragma mark - Init/dealloc
 
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _windowLevel = UIWindowLevelStatusBar + 10.0;
+
+        _meterPerfectColor = [KMCGeigerCounter colorWithHex:0x999999 alpha:1.0];
+        _meterGoodColor = [KMCGeigerCounter colorWithHex:0x66a300 alpha:1.0];
+        _meterBadColor = [KMCGeigerCounter colorWithHex:0xff7f0d alpha:1.0];
+    }
+    return self;
+}
+
 - (void)dealloc
 {
+    [_displayLink invalidate];
+
+    if (_tickSoundID) {
+        AudioServicesDisposeSystemSoundID(_tickSoundID);
+    }
+
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
@@ -178,6 +261,12 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 
         _enabled = enabled;
     }
+}
+
+- (void)setWindowLevel:(UIWindowLevel)windowLevel
+{
+    _windowLevel = windowLevel;
+    self.window.windowLevel = windowLevel;
 }
 
 - (NSInteger)droppedFrameCountInLastSecond

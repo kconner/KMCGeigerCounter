@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name             = "KMCGeigerCounter"
-  s.version          = "0.1.2"
-  s.summary          = "A performance testing tool that clicks when animation drops frames"
+  s.version          = "0.2.0"
+  s.summary          = "A framerate meter that clicks when animation drops frames"
   s.homepage         = "https://github.com/kconner/KMCGeigerCounter"
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { "Kevin Conner" => "connerk@gmail.com" }
