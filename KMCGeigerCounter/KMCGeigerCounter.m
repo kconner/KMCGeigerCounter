@@ -18,6 +18,8 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     CFTimeInterval _lastSecondOfFrameTimes[kHardwareFramesPerSecond];
 }
 
+@property (nonatomic, readwrite, getter = isRunning) BOOL running;
+
 @property (nonatomic, strong) SKView *view;
 
 @property (nonatomic, strong) CADisplayLink *displayLink;
@@ -65,6 +67,8 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     [self recordFrameTime:currentFrameTime];
 }
 
+#pragma mark -
+
 - (void)start
 {
     NSURL *tickSoundURL = [[NSBundle mainBundle] URLForResource:@"KMCGeigerCounterTick" withExtension:@"aiff"];
@@ -100,6 +104,57 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     self.tickSoundID = 0;
 }
 
+- (void)setRunning:(BOOL)running
+{
+    if (_running != running) {
+        if (running) {
+            [self start];
+        } else {
+            [self stop];
+        }
+
+        _running = running;
+    }
+}
+
+#pragma mark -
+
+- (void)applicationDidBecomeActive
+{
+    self.running = self.enabled;
+}
+
+- (void)applicationWillResignActive
+{
+    self.running = NO;
+}
+
+#pragma mark -
+
+- (void)enable
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillResignActive) name:UIApplicationWillResignActiveNotification object:nil];
+    
+    if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
+        self.running = YES;
+    }
+}
+
+- (void)disable
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
+    self.running = NO;
+}
+
+#pragma mark - Init/dealloc
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 #pragma mark - Public interface
 
 + (instancetype)sharedGeigerCounter
@@ -112,16 +167,16 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     return instance;
 }
 
-- (void)setRunning:(BOOL)running
+- (void)setEnabled:(BOOL)enabled
 {
-    if (_running != running) {
-        if (running) {
-            [self start];
+    if (_enabled != enabled) {
+        if (enabled) {
+            [self enable];
         } else {
-            [self stop];
+            [self disable];
         }
 
-        _running = running;
+        _enabled = enabled;
     }
 }
 

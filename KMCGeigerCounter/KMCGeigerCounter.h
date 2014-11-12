@@ -10,7 +10,10 @@
 
 @interface KMCGeigerCounter : NSObject
 
-@property (nonatomic, assign, getter = isRunning) BOOL running;
+// Set [KMCGeigerCounter sharedGeigerCounter].enabled = YES from -application:didFinishLaunchingWithOptions:
+@property (nonatomic, assign, getter = isEnabled) BOOL enabled;
+
+@property (nonatomic, readonly, getter = isRunning) BOOL running;
 @property (nonatomic, readonly) NSInteger droppedFrameCountInLastSecond;
 @property (nonatomic, readonly) NSInteger drawnFrameCountInLastSecond; // -1 until one second of frames have been collected
 

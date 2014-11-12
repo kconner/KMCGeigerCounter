@@ -32,17 +32,9 @@
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
 
+    [KMCGeigerCounter sharedGeigerCounter].enabled = YES;
+
     return YES;
-}
-
-- (void)applicationWillResignActive:(UIApplication *)application
-{
-    [KMCGeigerCounter sharedGeigerCounter].running = NO;
-}
-
-- (void)applicationDidBecomeActive:(UIApplication *)application
-{
-    [KMCGeigerCounter sharedGeigerCounter].running = YES;
 }
 
 @end

@@ -16,16 +16,14 @@ Or copy KMCGeigerCounter.h, KMCGeigerCounter.m, and KMCGeigerCounterTick.aiff in
 
 ## Usage
 
-In your `UIApplicationDelegate`, switch the tool on when your app is active:
+In your `UIApplicationDelegate`, enable the tool:
 
-    - (void)applicationWillResignActive:(UIApplication *)application
+    - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     {
-        [KMCGeigerCounter sharedGeigerCounter].running = NO;
-    }
+        // …
+        [self.window makeKeyAndVisible];
 
-    - (void)applicationDidBecomeActive:(UIApplication *)application
-    {
-        [KMCGeigerCounter sharedGeigerCounter].running = YES;
+        [KMCGeigerCounter sharedGeigerCounter].enabled = YES;
     }
 
 Then, build and run your app. Navigate through your app and listen for clicks.
