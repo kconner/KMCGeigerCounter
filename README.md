@@ -35,9 +35,13 @@ In your `UIApplicationDelegate`, enable the tool:
 
 Then, build and run your app. Navigate through your app and listen for clicks.
 
-## Doesn't adding a view to my app reduce the framerate?
+## Known issue
 
-Barely. If this causes frames to drop, the app's performance was probably toeing the line too closely in the first place.
+If you use view controller based status bar style, your `-preferredStatusBarStyle` will be ignored, because UIKit asks the meter window for that instead of your main window. I could avoid this by giving the meter window a root view controller, but then that would affect navigation bar height. I'd appreciate any ideas about this.
+
+## Doesn't adding a view to my app slow it down?
+
+Maybe. If the meter view causes frames to drop, the app's performance was probably toeing the line too closely in the first place.
 
 ## Dumb things you probably thought of, but seriously
 
