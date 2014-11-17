@@ -1,3 +1,7 @@
+*Hello! If you like KMCGeigerCounter, please consider helping me [send Jess to code school](http://www.gofundme.com/gs8fww).*
+
+---
+
 # KMCGeigerCounter
 
 KMCGeigerCounter is a framerate meter that clicks like a Geiger counter when your animation drops a frame.
