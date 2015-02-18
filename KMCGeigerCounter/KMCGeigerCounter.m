@@ -11,7 +11,11 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <SpriteKit/SpriteKit.h>
 
-static NSInteger const kHardwareFramesPerSecond = 60;
+// I'd prefer "static NSInteger const kHardwareFramesPerSecond = 60;", but
+// that doesn't work for all options of the "C Language Dialect" build setting.
+// https://github.com/kconner/KMCGeigerCounter/issues/3
+#define kHardwareFramesPerSecond 60
+
 static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecond;
 
 @interface KMCGeigerCounter () {
