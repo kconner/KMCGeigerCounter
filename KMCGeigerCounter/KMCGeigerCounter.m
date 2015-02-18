@@ -185,7 +185,19 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     self.window.userInteractionEnabled = NO;
 
     CGFloat const kMeterWidth = 65.0;
-    self.meterLabel = [[UILabel alloc] initWithFrame:CGRectMake((CGRectGetWidth(self.window.bounds) - kMeterWidth) / 2.0, 0.0,
+    CGFloat xOrigin = 0.0;
+    switch (self.position) {
+        case KMCGeigerCounterPositionLeft:
+            xOrigin = 0.0;
+            break;
+        case KMCGeigerCounterPositionMiddle:
+            xOrigin = (CGRectGetWidth(self.window.bounds) - kMeterWidth) / 2.0;
+            break;
+        case KMCGeigerCounterPositionRight:
+            xOrigin = (CGRectGetWidth(self.window.bounds) - kMeterWidth);
+            break;
+    }
+    self.meterLabel = [[UILabel alloc] initWithFrame:CGRectMake(xOrigin, 0.0,
                                                                 kMeterWidth, CGRectGetHeight(self.window.bounds))];
     self.meterLabel.font = [UIFont boldSystemFontOfSize:12.0];
     self.meterLabel.backgroundColor = [UIColor grayColor];
@@ -219,6 +231,7 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     self = [super init];
     if (self) {
         _windowLevel = UIWindowLevelStatusBar + 10.0;
+        _position = KMCGeigerCounterPositionMiddle;
 
         _meterPerfectColor = [KMCGeigerCounter colorWithHex:0x999999 alpha:1.0];
         _meterGoodColor = [KMCGeigerCounter colorWithHex:0x66a300 alpha:1.0];

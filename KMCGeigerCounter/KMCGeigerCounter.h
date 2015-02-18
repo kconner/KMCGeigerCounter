@@ -8,6 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
+typedef NS_ENUM(NSUInteger, KMCGeigerCounterPosition) {
+    KMCGeigerCounterPositionLeft,
+    KMCGeigerCounterPositionMiddle,
+    KMCGeigerCounterPositionRight
+};
+
 @interface KMCGeigerCounter : NSObject
 
 // Set [KMCGeigerCounter sharedGeigerCounter].enabled = YES from -application:didFinishLaunchingWithOptions:
@@ -15,6 +21,7 @@
 
 // Draws over the status bar. Set it manually if your own custom windows obscure it.
 @property (nonatomic, assign) UIWindowLevel windowLevel;
+@property (nonatomic, assign) KMCGeigerCounterPosition position;
 
 @property (nonatomic, readonly, getter = isRunning) BOOL running;
 @property (nonatomic, readonly) NSInteger droppedFrameCountInLastSecond;
