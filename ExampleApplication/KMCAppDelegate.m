@@ -33,7 +33,6 @@
     [self.window makeKeyAndVisible];
 
     [KMCGeigerCounter sharedGeigerCounter].enabled = YES;
-
     return YES;
 }
 
