@@ -48,3 +48,9 @@ Maybe. If the meter view causes frames to drop, the app's performance was probab
 Remember to turn off Silent mode, or you won't hear anything. 
 
 You should remove KMCGeigerCounter before shipping to the App Store. It can't be good for battery life.
+
+The iOS Simulator doesn't simulate device performance, so consider enabling the tool only for device builds:
+
+    #if !TARGET_IPHONE_SIMULATOR
+    [KMCGeigerCounter sharedGeigerCounter].enabled = YES;
+    #endif
