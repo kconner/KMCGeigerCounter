@@ -185,6 +185,10 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 - (void)enable
 {
     self.window = [[UIWindow alloc] initWithFrame:[UIApplication sharedApplication].statusBarFrame];
+    //If statusBar is hidden,the window frame will be CGRectZero,then use this frame
+    if (self.window.frame.size.width == 0 || self.window.frame.size.height == 0) {
+        self.window.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 15);
+    }
     self.window.windowLevel = self.windowLevel;
     self.window.userInteractionEnabled = NO;
 
