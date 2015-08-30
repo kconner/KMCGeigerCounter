@@ -187,6 +187,8 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     self.window = [[UIWindow alloc] initWithFrame:[UIApplication sharedApplication].statusBarFrame];
     self.window.windowLevel = self.windowLevel;
     self.window.userInteractionEnabled = NO;
+    // Set a dummy viewcontroller as root viewcontroller. Required as all application windows need to have a root viewcontroller.
+    self.window.rootViewController = [[UIViewController alloc] initWithNibName:nil bundle:nil];
 
     CGFloat const kMeterWidth = 65.0;
     CGFloat xOrigin = 0.0;
