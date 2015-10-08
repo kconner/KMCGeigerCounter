@@ -19,7 +19,17 @@ The meter is orange when you've dropped at least three frames in the past second
 
 `pod 'KMCGeigerCounter'`
 
-Or copy KMCGeigerCounter.h, KMCGeigerCounter.m, and KMCGeigerCounterTick.aiff into your project.
+Or copy these files into your project:
+
+- KMCGeigerCounter.h
+- KMCGeigerCounter.m
+- KMCGeigerCounter.aiff
+
+If you're not using CocoaPods, you may need to add these frameworks to your Link Binary With Libraries build phase:
+
+- QuartzCore.framework
+- AudioToolbox.framework
+- SpriteKit.framework
 
 ## Usage
 
