@@ -19,7 +19,7 @@
 static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecond;
 
 @interface KMCGeigerCounter () {
-    CFTimeInterval _lastSecondOfFrameTimes[kHardwareFramesPerSecond];
+    CFTimeInterval _recentFrameTimes[kHardwareFramesPerSecond];
 }
 
 @property (nonatomic, readwrite, getter = isRunning) BOOL running;
@@ -53,20 +53,20 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 
 - (CFTimeInterval)lastFrameTime
 {
-    return _lastSecondOfFrameTimes[self.frameNumber % kHardwareFramesPerSecond];
+    return _recentFrameTimes[self.frameNumber % kHardwareFramesPerSecond];
 }
 
 - (void)recordFrameTime:(CFTimeInterval)frameTime
 {
     ++self.frameNumber;
-    _lastSecondOfFrameTimes[self.frameNumber % kHardwareFramesPerSecond] = frameTime;
+    _recentFrameTimes[self.frameNumber % kHardwareFramesPerSecond] = frameTime;
 }
 
 - (void)clearLastSecondOfFrameTimes
 {
     CFTimeInterval initialFrameTime = CACurrentMediaTime();
     for (NSInteger i = 0; i < kHardwareFramesPerSecond; ++i) {
-        _lastSecondOfFrameTimes[i] = initialFrameTime;
+        _recentFrameTimes[i] = initialFrameTime;
     }
     self.frameNumber = 0;
 }
@@ -136,7 +136,7 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     // between frames, then the framerate can drop without CADisplayLink detecting it.
     // Therefore, put an empty 1pt x 1pt SKView in the window. It shouldn't interfere with the framerate, but
     // should cause the CADisplayLink callbacks to match the timing of drawing.
-    SKScene *scene = [SKScene new];
+    SKScene *scene = [[SKScene alloc] initWithSize:CGSizeMake(1.0, 1.0)];
     self.sceneView = [[SKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 1.0, 1.0)];
     [self.sceneView presentScene:scene];
 
@@ -184,30 +184,37 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 
 - (void)enable
 {
-    self.window = [[UIWindow alloc] initWithFrame:[UIApplication sharedApplication].statusBarFrame];
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    self.window.rootViewController = [[UIViewController alloc] init];
     self.window.windowLevel = self.windowLevel;
     self.window.userInteractionEnabled = NO;
 
     CGFloat const kMeterWidth = 65.0;
     CGFloat xOrigin = 0.0;
+    UIViewAutoresizing autoresizingMask = UIViewAutoresizingFlexibleBottomMargin;
     switch (self.position) {
         case KMCGeigerCounterPositionLeft:
             xOrigin = 0.0;
+            autoresizingMask |= UIViewAutoresizingFlexibleRightMargin;
             break;
         case KMCGeigerCounterPositionMiddle:
             xOrigin = (CGRectGetWidth(self.window.bounds) - kMeterWidth) / 2.0;
+            autoresizingMask |= UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
             break;
         case KMCGeigerCounterPositionRight:
             xOrigin = (CGRectGetWidth(self.window.bounds) - kMeterWidth);
+            autoresizingMask |= UIViewAutoresizingFlexibleLeftMargin;
             break;
     }
     self.meterLabel = [[UILabel alloc] initWithFrame:CGRectMake(xOrigin, 0.0,
-                                                                kMeterWidth, CGRectGetHeight(self.window.bounds))];
+                                                                kMeterWidth, 20.0)];
+    self.meterLabel.autoresizingMask = autoresizingMask;
     self.meterLabel.font = [UIFont boldSystemFontOfSize:12.0];
     self.meterLabel.backgroundColor = [UIColor grayColor];
     self.meterLabel.textColor = [UIColor whiteColor];
     self.meterLabel.textAlignment = NSTextAlignmentCenter;
-    [self.window addSubview:self.meterLabel];
+    [self.window.rootViewController.view addSubview:self.meterLabel];
+
     self.window.hidden = NO;
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
@@ -262,7 +269,7 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     static KMCGeigerCounter *instance;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        instance = [KMCGeigerCounter new];
+        instance = [[KMCGeigerCounter alloc] init];
     });
     return instance;
 }
@@ -292,7 +299,7 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 
     CFTimeInterval lastFrameTime = CACurrentMediaTime() - kNormalFrameDuration;
     for (NSInteger i = 0; i < kHardwareFramesPerSecond; ++i) {
-        if (1.0 <= lastFrameTime - _lastSecondOfFrameTimes[i]) {
+        if (1.0 <= lastFrameTime - _recentFrameTimes[i]) {
             ++droppedFrameCount;
         }
     }

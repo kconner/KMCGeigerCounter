@@ -14,17 +14,17 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    KMCTableViewController *complexViewController = [KMCTableViewController new];
+    KMCTableViewController *complexViewController = [[KMCTableViewController alloc] initWithNibName:nil bundle:nil];
     complexViewController.title = @"Complex view";
     complexViewController.cellType = KMCTableViewCellTypeComplex;
     UINavigationController *complexNavigationController = [[UINavigationController alloc] initWithRootViewController:complexViewController];
 
-    KMCTableViewController *simpleViewController = [KMCTableViewController new];
+    KMCTableViewController *simpleViewController = [[KMCTableViewController alloc] initWithNibName:nil bundle:nil];
     simpleViewController.title = @"Simple view";
     simpleViewController.cellType = KMCTableViewCellTypeSimple;
     UINavigationController *simpleNavigationController = [[UINavigationController alloc] initWithRootViewController:simpleViewController];
 
-    UITabBarController *tabBarController = [UITabBarController new];
+    UITabBarController *tabBarController = [[UITabBarController alloc] initWithNibName:nil bundle:nil];
     tabBarController.viewControllers = @[ complexNavigationController, simpleNavigationController ];
 
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];

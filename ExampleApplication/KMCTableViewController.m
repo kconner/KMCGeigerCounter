@@ -38,7 +38,7 @@ static NSString * const kCellIdentifier = @"KMCTableViewCell";
                              @"I hope it's OK that I just sneezed on your face while you slept.\n…Are you going to eat that?" ];
 
         for (NSInteger i = 0; i < 50; i++) {
-            KMCTableItem *item = [KMCTableItem new];
+            KMCTableItem *item = [[KMCTableItem alloc] init];
             item.unread = i % 3 == 0;
             item.senderPhoto = [UIImage imageNamed:[NSString stringWithFormat:@"cat%ld", (long) (i % 10)]];
             item.senderEmail = senderEmails[i % senderEmails.count];
