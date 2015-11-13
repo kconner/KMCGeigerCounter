@@ -22,9 +22,9 @@ static NSString * const kCellIdentifier = @"KMCTableViewCell";
 
 #pragma mark - Init/dealloc
 
-- (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+- (instancetype)init
 {
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    self = [super init];
     if (self) {
         NSMutableArray *items = [NSMutableArray array];
 

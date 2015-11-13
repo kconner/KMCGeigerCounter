@@ -208,6 +208,7 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     self.meterLabel.textColor = [UIColor whiteColor];
     self.meterLabel.textAlignment = NSTextAlignmentCenter;
     [self.window addSubview:self.meterLabel];
+    [self.window setRootViewController:[UIViewController new]];
     self.window.hidden = NO;
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
