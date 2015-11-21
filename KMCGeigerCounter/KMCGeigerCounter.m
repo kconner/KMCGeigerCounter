@@ -104,6 +104,8 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 
 - (void)displayLinkWillDraw:(CADisplayLink *)displayLink
 {
+    // printf("%ld \t%f \t%f\n", self.frameNumber % 60, [NSDate date].timeIntervalSince1970 * 60, displayLink.timestamp * 60);
+
     CFTimeInterval currentFrameTime = displayLink.timestamp;
     CFTimeInterval frameDuration = currentFrameTime - [self lastFrameTime];
 
@@ -132,10 +134,17 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     [self clearLastSecondOfFrameTimes];
 
     // Low framerates can be caused by CPU activity on the main thread or by long compositing time in (I suppose)
-    // the graphics driver. If compositing time is the problem, and it doesn't require on any main thread activity
+    // the graphics driver. If compositing time is the problem, and it doesn't require a lot of main thread activity
     // between frames, then the framerate can drop without CADisplayLink detecting it.
     // Therefore, put an empty 1pt x 1pt SKView in the window. It shouldn't interfere with the framerate, but
     // should cause the CADisplayLink callbacks to match the timing of drawing.
+    // TODO: This should be lightweight but affects the framerate on iOS 9, particularly in the example application.
+    // Maybe if I use only the SKView and not the CADisplayLink?
+    // No, that doesn't help. The SKView alone is causing the drawing latency. The CADisplayLink does not interfere.
+    // SceneKit doens't exist before iOS 8, so I'd prefer not to rely on it.
+    // A GLKViewController works on the default run loop, so it doesn't get updates during core animation scrolling.
+    // Using a custom view with -drawRect: or -displayLayer:, callbacks happen just as often as CADisplayLink.
+    // I need a new way to accurately detect when a frame is drawn to the screen without affecting the framerate.
     SKScene *scene = [[SKScene alloc] initWithSize:CGSizeMake(1.0, 1.0)];
     self.sceneView = [[SKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 1.0, 1.0)];
     [self.sceneView presentScene:scene];
