@@ -185,6 +185,7 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 - (void)enable
 {
     self.window = [[UIWindow alloc] initWithFrame:[UIApplication sharedApplication].statusBarFrame];
+    self.window.rootViewController = [UIViewController new];
     self.window.windowLevel = self.windowLevel;
     self.window.userInteractionEnabled = NO;
 
