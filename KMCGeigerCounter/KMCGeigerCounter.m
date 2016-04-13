@@ -187,6 +187,7 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     self.window = [[UIWindow alloc] initWithFrame:[UIApplication sharedApplication].statusBarFrame];
     self.window.windowLevel = self.windowLevel;
     self.window.userInteractionEnabled = NO;
+    self.window.rootViewController = [[UIViewController alloc] init];
 
     CGFloat const kMeterWidth = 65.0;
     CGFloat xOrigin = 0.0;
