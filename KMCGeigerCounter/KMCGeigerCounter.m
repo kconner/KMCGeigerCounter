@@ -110,7 +110,9 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     // Frames should be even multiples of kNormalFrameDuration.
     // If a frame takes two frame durations, we dropped at least one, so click.
     if (1.5 < frameDuration / kNormalFrameDuration) {
-        AudioServicesPlaySystemSound(self.tickSoundID);
+        if (self.alertType != KMCGeigerCounterAlertNone) {
+            AudioServicesPlaySystemSound(self.tickSoundID);
+        }
     }
 
     [self recordFrameTime:currentFrameTime];
@@ -236,7 +238,8 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     if (self) {
         _windowLevel = UIWindowLevelStatusBar + 10.0;
         _position = KMCGeigerCounterPositionMiddle;
-
+        _alertType = KMCGeigerCounterAlertSound;
+        
         _meterPerfectColor = [KMCGeigerCounter colorWithHex:0x999999 alpha:1.0];
         _meterGoodColor = [KMCGeigerCounter colorWithHex:0x66a300 alpha:1.0];
         _meterBadColor = [KMCGeigerCounter colorWithHex:0xff7f0d alpha:1.0];
