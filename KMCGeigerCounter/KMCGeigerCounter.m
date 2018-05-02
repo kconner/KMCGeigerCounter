@@ -16,6 +16,11 @@
 // https://github.com/kconner/KMCGeigerCounter/issues/3
 #define kHardwareFramesPerSecond 60
 
+// Check if current device is iPhone X
+#define kIsIphoneX (CGSizeEqualToSize(CGSizeMake(375.f, 812.f), [UIScreen mainScreen].bounds.size) || CGSizeEqualToSize(CGSizeMake(812.f, 375.f), [UIScreen mainScreen].bounds.size))
+
+#define kIphoneXStatusBarIncrement (24.f)
+
 static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecond;
 
 @interface KMCGeigerCounter () {
@@ -184,7 +189,12 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 
 - (void)enable
 {
-    self.window = [[UIWindow alloc] initWithFrame:[UIApplication sharedApplication].statusBarFrame];
+    CGRect frame = [UIApplication sharedApplication].statusBarFrame;
+    if (kIsIphoneX) {
+        frame.size.height /= 2;
+        frame.origin.y += kIphoneXStatusBarIncrement + frame.size.height/2;
+    }
+    self.window = [[UIWindow alloc] initWithFrame:frame];
     self.window.windowLevel = self.windowLevel;
     self.window.userInteractionEnabled = NO;
 
