@@ -13,7 +13,7 @@
 
 @interface KMCGeigerCounter ()
 
-@property (nonatomic, readwrite, getter = isRunning) BOOL running;
+@property (nonatomic, readwrite, assign, getter = isRunning) BOOL running;
 
 @property (nonatomic, strong) UIWindow *window;
 @property (nonatomic, strong) UILabel *meterLabel;
@@ -101,8 +101,6 @@
 
 - (void)displayLinkWillDraw:(CADisplayLink *)displayLink
 {
-    // printf("%ld \t%f \t%f\n", self.frameNumber % 60, [NSDate date].timeIntervalSince1970 * 60, displayLink.timestamp * 60);
-
     CFTimeInterval currentFrameTime = displayLink.timestamp;
     CFTimeInterval frameDuration = currentFrameTime - [self lastFrameTime];
 

@@ -28,6 +28,8 @@
 
 - (void)awakeFromNib
 {
+    [super awakeFromNib];
+
     if ([self respondsToSelector:@selector(setPreservesSuperviewLayoutMargins:)]) {
         self.preservesSuperviewLayoutMargins = NO;
     }
