@@ -11,16 +11,7 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <SpriteKit/SpriteKit.h>
 
-// I'd prefer "static NSInteger const kHardwareFramesPerSecond = 60;", but
-// that doesn't work for all options of the "C Language Dialect" build setting.
-// https://github.com/kconner/KMCGeigerCounter/issues/3
-#define kHardwareFramesPerSecond 60
-
-static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecond;
-
-@interface KMCGeigerCounter () {
-    CFTimeInterval _recentFrameTimes[kHardwareFramesPerSecond];
-}
+@interface KMCGeigerCounter ()
 
 @property (nonatomic, readwrite, getter = isRunning) BOOL running;
 
@@ -34,6 +25,9 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 @property (nonatomic, assign) SystemSoundID tickSoundID;
 
 @property (nonatomic, assign) NSInteger frameNumber;
+
+@property (nonatomic, assign) NSInteger hardwareFramesPerSecond;
+@property (nonatomic, assign) CFTimeInterval *recentFrameTimes; // malloc: CFTimeInterval[hardwareFramesPerSecond]
 
 @end
 
@@ -51,19 +45,19 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 
 - (CFTimeInterval)lastFrameTime
 {
-    return _recentFrameTimes[self.frameNumber % kHardwareFramesPerSecond];
+    return _recentFrameTimes[self.frameNumber % self.hardwareFramesPerSecond];
 }
 
 - (void)recordFrameTime:(CFTimeInterval)frameTime
 {
     ++self.frameNumber;
-    _recentFrameTimes[self.frameNumber % kHardwareFramesPerSecond] = frameTime;
+    _recentFrameTimes[self.frameNumber % self.hardwareFramesPerSecond] = frameTime;
 }
 
 - (void)clearLastSecondOfFrameTimes
 {
     CFTimeInterval initialFrameTime = CACurrentMediaTime();
-    for (NSInteger i = 0; i < kHardwareFramesPerSecond; ++i) {
+    for (NSInteger i = 0; i < self.hardwareFramesPerSecond; ++i) {
         _recentFrameTimes[i] = initialFrameTime;
     }
     self.frameNumber = 0;
@@ -100,6 +94,11 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     self.meterLabel.text = [NSString stringWithFormat:@"%@   %@", droppedString, drawnString];
 }
 
+- (CFTimeInterval)hardwareFrameDuration
+{
+    return 1.0 / self.hardwareFramesPerSecond;
+}
+
 - (void)displayLinkWillDraw:(CADisplayLink *)displayLink
 {
     // printf("%ld \t%f \t%f\n", self.frameNumber % 60, [NSDate date].timeIntervalSince1970 * 60, displayLink.timestamp * 60);
@@ -107,9 +106,9 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     CFTimeInterval currentFrameTime = displayLink.timestamp;
     CFTimeInterval frameDuration = currentFrameTime - [self lastFrameTime];
 
-    // Frames should be even multiples of kNormalFrameDuration.
+    // Frames should be even multiples of hardwareFrameDuration.
     // If a frame takes two frame durations, we dropped at least one, so click.
-    if (1.5 < frameDuration / kNormalFrameDuration) {
+    if (1.5 < frameDuration / [self hardwareFrameDuration]) {
         AudioServicesPlaySystemSound(self.tickSoundID);
     }
 
@@ -233,6 +232,9 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
         _meterPerfectColor = [KMCGeigerCounter colorWithHex:0x999999 alpha:1.0];
         _meterGoodColor = [KMCGeigerCounter colorWithHex:0x66a300 alpha:1.0];
         _meterBadColor = [KMCGeigerCounter colorWithHex:0xff7f0d alpha:1.0];
+
+        _hardwareFramesPerSecond = [UIScreen mainScreen].maximumFramesPerSecond;
+        _recentFrameTimes = malloc(sizeof(*_recentFrameTimes) * _hardwareFramesPerSecond);
     }
     return self;
 }
@@ -246,6 +248,11 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
     }
 
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+
+    if (_recentFrameTimes) {
+        free(_recentFrameTimes);
+        _recentFrameTimes = nil;
+    }
 }
 
 #pragma mark - Public interface
@@ -283,8 +290,8 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 {
     NSInteger droppedFrameCount = 0;
 
-    CFTimeInterval lastFrameTime = CACurrentMediaTime() - kNormalFrameDuration;
-    for (NSInteger i = 0; i < kHardwareFramesPerSecond; ++i) {
+    CFTimeInterval lastFrameTime = CACurrentMediaTime() - [self hardwareFrameDuration];
+    for (NSInteger i = 0; i < self.hardwareFramesPerSecond; ++i) {
         if (1.0 <= lastFrameTime - _recentFrameTimes[i]) {
             ++droppedFrameCount;
         }
@@ -295,11 +302,11 @@ static NSTimeInterval const kNormalFrameDuration = 1.0 / kHardwareFramesPerSecon
 
 - (NSInteger)drawnFrameCountInLastSecond
 {
-    if (!self.running || self.frameNumber < kHardwareFramesPerSecond) {
+    if (!self.running || self.frameNumber < self.hardwareFramesPerSecond) {
         return -1;
     }
 
-    return kHardwareFramesPerSecond - self.droppedFrameCountInLastSecond;
+    return self.hardwareFramesPerSecond - self.droppedFrameCountInLastSecond;
 }
 
 @end
