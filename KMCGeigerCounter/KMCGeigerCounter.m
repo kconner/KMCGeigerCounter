@@ -172,7 +172,7 @@
     self.window.windowLevel = self.windowLevel;
     self.window.userInteractionEnabled = NO;
 
-    CGFloat const kMeterWidth = 65.0;
+    CGFloat const kMeterWidth = 105.0;
     CGFloat xOrigin = 0.0;
     UIViewAutoresizing autoresizingMask = UIViewAutoresizingFlexibleBottomMargin;
     switch (self.position) {
@@ -189,8 +189,10 @@
             autoresizingMask |= UIViewAutoresizingFlexibleLeftMargin;
             break;
     }
+
+    CGFloat meterHeight = fmax(20.0, fmin(30.0, [UIApplication sharedApplication].statusBarFrame.size.height));
     self.meterLabel = [[UILabel alloc] initWithFrame:CGRectMake(xOrigin, 0.0,
-                                                                kMeterWidth, 20.0)];
+                                                                kMeterWidth, meterHeight)];
     self.meterLabel.autoresizingMask = autoresizingMask;
     self.meterLabel.font = [UIFont boldSystemFontOfSize:12.0];
     self.meterLabel.backgroundColor = [UIColor grayColor];
