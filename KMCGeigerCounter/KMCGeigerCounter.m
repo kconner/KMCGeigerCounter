@@ -7,9 +7,7 @@
 //
 
 #import "KMCGeigerCounter.h"
-#import <QuartzCore/QuartzCore.h>
 #import <AudioToolbox/AudioToolbox.h>
-#import <SpriteKit/SpriteKit.h>
 
 @interface KMCGeigerCounter ()
 

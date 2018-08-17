@@ -25,11 +25,9 @@ Or copy these files into your project:
 - KMCGeigerCounter.m
 - KMCGeigerCounter.aiff
 
-If you're not using CocoaPods, you may need to add these frameworks to your Link Binary With Libraries build phase:
+If you're not using CocoaPods, you may need to add this framework to your Link Binary With Libraries build phase:
 
-- QuartzCore.framework
 - AudioToolbox.framework
-- SpriteKit.framework
 
 ## Usage
 
