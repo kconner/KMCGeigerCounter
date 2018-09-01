@@ -231,7 +231,12 @@
         _meterGoodColor = [KMCGeigerCounter colorWithHex:0x66a300 alpha:1.0];
         _meterBadColor = [KMCGeigerCounter colorWithHex:0xff7f0d alpha:1.0];
 
-        _hardwareFramesPerSecond = [UIScreen mainScreen].maximumFramesPerSecond;
+        if (@available(iOS 10.3, *)) {
+            _hardwareFramesPerSecond = [UIScreen mainScreen].maximumFramesPerSecond;
+        } else {
+            _hardwareFramesPerSecond = 60;
+        }
+
         _recentFrameTimes = malloc(sizeof(*_recentFrameTimes) * _hardwareFramesPerSecond);
     }
     return self;
