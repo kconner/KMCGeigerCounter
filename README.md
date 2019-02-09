@@ -33,13 +33,15 @@ If you're not using CocoaPods, you may need to add this framework to your Link B
 
 In your `UIApplicationDelegate`, enable the tool:
 
-    - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-    {
-        // …
-        [self.window makeKeyAndVisible];
+```objc
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    // …
+    [self.window makeKeyAndVisible];
 
-        [KMCGeigerCounter sharedGeigerCounter].enabled = YES;
-    }
+    [KMCGeigerCounter sharedGeigerCounter].enabled = YES;
+}
+```
 
 Build and run your app. Navigate through your app and listen for clicks.
 
@@ -55,6 +57,8 @@ You should remove KMCGeigerCounter before shipping to the App Store. It can't be
 
 The iOS Simulator doesn't simulate device performance, so consider enabling the tool only for device builds:
 
-    #if !TARGET_IPHONE_SIMULATOR
-    [KMCGeigerCounter sharedGeigerCounter].enabled = YES;
-    #endif
+```objc
+#if !TARGET_IPHONE_SIMULATOR
+[KMCGeigerCounter sharedGeigerCounter].enabled = YES;
+#endif
+```
